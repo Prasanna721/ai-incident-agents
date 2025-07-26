@@ -54,7 +54,7 @@ def create_initial_messages():
 
 def create_code_retrieval_agent():
     """Create and configure the code retrieval agent."""
-    return Agent(
+    agent = Agent(
         agent_id="code_retrieval_agent",
         system_prompt="""You are a code analysis specialist for incident response. Follow these steps:
 
@@ -92,6 +92,9 @@ When you receive a build ID:
         model=BedrockModel(model_id="us.amazon.nova-pro-v1:0", region="us-east-1"),
         tools=[get_code_context, http_request, think],
     )
+    # Set unique name for Swarm compatibility
+    agent.name = "code_retrieval_agent"
+    return agent
 
 
 def main():

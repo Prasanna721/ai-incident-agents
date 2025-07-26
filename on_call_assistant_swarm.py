@@ -38,9 +38,15 @@ class IncidentAnalysisSwarm:
         self.logs_agent = create_log_metrics_agent()
         self.code_agent = create_code_retrieval_agent()
         
-        # Set unique names/IDs for the agents
+        # Set unique names AND agent_ids for the agents - CRITICAL for Swarm
+        # The Swarm uses the 'name' attribute to identify unique agents
+        self.search_agent.name = "incident_search_agent"
         self.search_agent.agent_id = "incident_search_agent"
-        self.logs_agent.agent_id = "log_metrics_agent" 
+        
+        self.logs_agent.name = "log_metrics_agent" 
+        self.logs_agent.agent_id = "log_metrics_agent"
+        
+        self.code_agent.name = "code_retrieval_agent"
         self.code_agent.agent_id = "code_retrieval_agent"
         
         # Create nodes list for the swarm

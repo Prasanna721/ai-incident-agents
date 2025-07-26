@@ -88,7 +88,7 @@ def create_initial_messages():
 
 def create_incident_search_agent():
     """Create and configure the incident search agent."""
-    return Agent(
+    agent = Agent(
         agent_id="incident_search_agent",
         system_prompt="""You are an incident discovery specialist. Your job is to:
         1. Understand the user's report about a production issue.
@@ -97,6 +97,9 @@ def create_incident_search_agent():
         model=BedrockModel(model_id="us.amazon.nova-pro-v1:0", region="us-east-1"),
         tools=[get_incident_details, think],
     )
+    # Set unique name for Swarm compatibility
+    agent.name = "incident_search_agent"
+    return agent
 
 
 def main():

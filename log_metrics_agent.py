@@ -54,7 +54,7 @@ def create_initial_messages():
 
 def create_log_metrics_agent():
     """Create and configure the log and metrics analysis agent."""
-    return Agent(
+    agent = Agent(
         agent_id="log_metrics_agent",
         system_prompt="""You are a log and metrics analysis specialist for on-call engineering. Follow these steps:
 
@@ -92,6 +92,9 @@ When you receive an incident ID:
         model=BedrockModel(model_id="us.amazon.nova-pro-v1:0", region="us-east-1"),
         tools=[get_logs_and_metrics, http_request, think],
     )
+    # Set unique name for Swarm compatibility
+    agent.name = "log_metrics_agent"
+    return agent
 
 
 def main():
