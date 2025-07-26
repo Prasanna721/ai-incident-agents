@@ -1,86 +1,111 @@
 #!/usr/bin/env python3
-"""
-Incident Simulation API
-
-A mock API server using FastAPI to simulate incident management tool endpoints.
-This provides data for the On-Call Assistant Swarm.
-"""
 
 import datetime as dt
+import json
+import os
 from fastapi import FastAPI, HTTPException
 
 app = FastAPI(
-    title="Incident Simulation API",
-    description="Mock API for fetching incident logs, metrics, and code context.",
-    version="1.0.0",
+    title="AI Voice Company Incident API",
+    description="Production incident management API for AI voice foundational model platform",
+    version="2.0.0",
 )
+
+with open(os.path.join(os.path.dirname(__file__), 'ai_voice_incidents_data.json'), 'r') as f:
+    INCIDENTS_DATA = json.load(f)
 
 
 @app.get("/log_metrics_retrieval/{incident_id}")
 def get_log_metrics_retrieval(incident_id: str):
-    """
-    Simulates fetching logs and metrics for a given incident ID.
-    """
     if not incident_id:
         raise HTTPException(status_code=400, detail="Incident ID is required")
-
-    # Mock data
+    
+    incident = INCIDENTS_DATA['incidents'].get(incident_id)
+    if not incident:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
+    
     return {
         "status": "success",
         "data": {
             "incidentId": incident_id,
-            "service": "checkout-service-prod",
-            "timestamp": dt.datetime.now().isoformat(),
-            "logs": [
-                "[ERROR] Timeout connecting to payment-gateway",
-                "[WARN] High latency detected in process_payment",
-                "[INFO] User 'user-123' initiated checkout",
-                "[ERROR] Database connection pool exhausted",
-            ],
-            "metrics": {
-                "cpu_utilization": "95%",
-                "memory_usage": "89%",
-                "api_latency_p99": "3500ms",
-                "error_rate": "15%",
-            },
+            "title": incident['title'],
+            "service": incident['service'],
+            "severity": incident['severity'],
+            "status": incident['status'],
+            "timestamp": incident['created_at'],
+            "resolved_at": incident.get('resolved_at'),
+            "affected_customers": incident['affected_customers'],
+            "description": incident['description'],
+            "logs": incident['logs'],
+            "metrics": incident['metrics'],
+            "infrastructure": incident['infrastructure'],
+            "root_cause": incident.get('root_cause'),
+            "resolution": incident.get('resolution')
         },
     }
 
 
 @app.get("/code_retrieval_tool/{build_id}")
 def get_code_retrieval_tool(build_id: str):
-    """
-    Simulates fetching code context for a given build ID.
-    """
     if not build_id:
         raise HTTPException(status_code=400, detail="Build ID is required")
-
-    # Mock data
+    
+    deployment = INCIDENTS_DATA['code_deployments'].get(build_id)
+    if not deployment:
+        raise HTTPException(status_code=404, detail=f"Build {build_id} not found")
+    
     return {
         "status": "success",
         "data": {
-            "build_id": build_id,
-            "repository": "github.com/example/checkout-service",
-            "commit_hash": "a1b2c3d4",
-            "timestamp": (dt.datetime.now() - dt.timedelta(hours=1)).isoformat(),
-            "file_changes": [
-                {
-                    "file": "src/gateways/payment.py",
-                    "change": "updated timeout from 5s to 2s",
-                },
-                {
-                    "file": "src/main.py",
-                    "change": "added new metrics for payment retries",
-                },
-            ],
+            "build_id": deployment['build_id'],
+            "repository": deployment['repository'],
+            "branch": deployment['branch'],
+            "commit_hash": deployment['commit_hash'],
+            "timestamp": deployment['timestamp'],
+            "deployment_status": deployment['deployment_status'],
+            "services_affected": deployment['services_affected'],
+            "file_changes": deployment['file_changes'],
+            "tests_passed": deployment['tests_passed'],
+            "deployment_time_seconds": deployment['deployment_time_seconds'],
+            "rollback_plan": deployment['rollback_plan']
         },
     }
 
 
+@app.get("/incidents")
+def list_incidents():
+    return {
+        "status": "success",
+        "data": {
+            "incidents": list(INCIDENTS_DATA['incidents'].keys()),
+            "total_count": len(INCIDENTS_DATA['incidents'])
+        }
+    }
+
+@app.get("/deployments")
+def list_deployments():
+    return {
+        "status": "success",
+        "data": {
+            "deployments": list(INCIDENTS_DATA['code_deployments'].keys()),
+            "total_count": len(INCIDENTS_DATA['code_deployments'])
+        }
+    }
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "ai-voice-incident-api",
+        "timestamp": dt.datetime.now().isoformat()
+    }
+
 if __name__ == "__main__":
     import uvicorn
-
-    print("Starting Incident Simulation API server...")
+    
+    print("Starting AI Voice Company Incident API server...")
     print("Access endpoints at http://127.0.0.1:8000")
     print("Swagger UI: http://127.0.0.1:8000/docs")
+    print("Available incidents: INC-2024-001, INC-2024-002, INC-2024-003")
+    print("Available deployments: BUILD-2024-0425, BUILD-2024-0424, BUILD-2024-0423")
     uvicorn.run(app, host="127.0.0.1", port=8000)

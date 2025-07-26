@@ -10,7 +10,7 @@ from typing import Dict, Union
 # Third-party imports
 from strands import Agent, tool
 from strands.models.bedrock import BedrockModel
-from strands_tools import think
+from strands_tools import think, http_request
 
 API_BASE_URL = "http://127.0.0.1:8000"
 
@@ -56,14 +56,41 @@ def create_code_retrieval_agent():
     """Create and configure the code retrieval agent."""
     return Agent(
         agent_id="code_retrieval_agent",
-        system_prompt="""
-        You are a code analysis specialist for incident response.
-            Your job is to:
-            1. Use 'get_code_context' with a build ID to fetch recent code changes.
-            2. Analyze the file changes to identify any modifications that could be related to the incident.
-            3. Summarize the potentially problematic code changes and explain why they might be the root cause.""",
+        system_prompt="""You are a code analysis specialist for incident response. Follow these steps:
+
+<input>
+When you receive a build ID:
+1. Use 'get_code_context' to fetch recent code changes and deployment info
+2. Analyze file changes for potential incident causes
+3. Review deployment metadata and test results
+4. Provide structured analysis in the format below
+</input>
+
+<output_format>
+1. Deployment Overview:
+   - Build Information
+   - Services Affected
+   - Deployment Status
+   - Test Results
+
+2. Code Change Analysis:
+   - Critical File Changes
+   - Risk Assessment
+   - Breaking Changes Identified
+   - Dependencies Modified
+
+3. Incident Correlation:
+   - Potential Root Causes
+   - Timing Analysis
+   - Impact Assessment
+
+4. Rollback Assessment:
+   - Rollback Feasibility
+   - Risk Mitigation
+   - Recovery Steps
+</output_format>""",
         model=BedrockModel(model_id="us.amazon.nova-pro-v1:0", region="us-east-1"),
-        tools=[get_code_context, think],
+        tools=[get_code_context, http_request, think],
     )
 
 

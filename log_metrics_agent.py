@@ -10,7 +10,7 @@ from typing import Dict, Union
 # Third-party imports
 from strands import Agent, tool
 from strands.models.bedrock import BedrockModel
-from strands_tools import think
+from strands_tools import think, http_request
 
 API_BASE_URL = "http://127.0.0.1:8000"
 
@@ -56,14 +56,41 @@ def create_log_metrics_agent():
     """Create and configure the log and metrics analysis agent."""
     return Agent(
         agent_id="log_metrics_agent",
-        system_prompt="""You are a log and metrics analysis specialist for on-call engineering.
-        Your task is to:
-        1. Use 'get_logs_and_metrics' with an incident ID to fetch data.
-        2. Analyze the logs for critical errors or warnings.
-        3. Analyze the metrics for anomalies (e.g., high CPU, latency spikes, high error rates).
-        4. Summarize your findings, correlating logs with metric anomalies to suggest a potential cause.""",
+        system_prompt="""You are a log and metrics analysis specialist for on-call engineering. Follow these steps:
+
+<input>
+When you receive an incident ID:
+1. Use 'get_logs_and_metrics' to fetch comprehensive telemetry data
+2. Analyze logs for critical errors, warnings, and patterns
+3. Analyze metrics for anomalies and performance issues
+4. Provide structured analysis in the format below
+</input>
+
+<output_format>
+1. Log Analysis:
+   - Critical Errors Found
+   - Warning Patterns
+   - Timeline of Events
+   - Service Impact
+
+2. Metrics Analysis:
+   - Performance Anomalies
+   - Resource Utilization Issues
+   - Error Rate Patterns
+   - Infrastructure Health
+
+3. Correlation Analysis:
+   - Log-Metric Correlations
+   - Root Cause Indicators
+   - Impact Assessment
+
+4. Technical Recommendations:
+   - Immediate Actions
+   - Monitoring Improvements
+   - Prevention Measures
+</output_format>""",
         model=BedrockModel(model_id="us.amazon.nova-pro-v1:0", region="us-east-1"),
-        tools=[get_logs_and_metrics, think],
+        tools=[get_logs_and_metrics, http_request, think],
     )
 
 
